@@ -203,7 +203,7 @@ def test_cli_codex_hook_uses_session_aware_path(monkeypatch) -> None:
     monkeypatch.setattr("sys.stdin", io.StringIO('{"session_id":"session-a","event":"Stop"}'))
     monkeypatch.setattr(
         cli,
-        "play_codex_hook_signal",
+        "play_hook_signal",
         lambda signal_name, *, session_key, dry_run=False, quiet=False: calls.append(
             (signal_name, session_key, dry_run, quiet)
         )
@@ -219,7 +219,7 @@ def test_cli_codex_hook_without_event_uses_stdin_event(monkeypatch) -> None:
     monkeypatch.setattr("sys.stdin", io.StringIO('{"session_id":"session-a","event":"PermissionRequest"}'))
     monkeypatch.setattr(
         cli,
-        "play_codex_hook_signal",
+        "play_hook_signal",
         lambda signal_name, *, session_key, dry_run=False, quiet=False: calls.append(
             (signal_name, session_key, dry_run, quiet)
         )

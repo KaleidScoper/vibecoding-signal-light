@@ -265,6 +265,8 @@ def _terminate(pid: int) -> None:
         os.kill(pid, signal.SIGTERM)
     except ProcessLookupError:
         return
+    except PermissionError as exc:
+        raise SignalLightError(f"Cannot stop existing signal worker {pid}: {exc}") from exc
 
     deadline = time.monotonic() + 1.0
     while time.monotonic() < deadline:
@@ -276,6 +278,8 @@ def _terminate(pid: int) -> None:
         os.kill(pid, signal.SIGKILL)
     except ProcessLookupError:
         return
+    except PermissionError as exc:
+        raise SignalLightError(f"Cannot stop existing signal worker {pid}: {exc}") from exc
 
 
 def _is_running(pid: int) -> bool:

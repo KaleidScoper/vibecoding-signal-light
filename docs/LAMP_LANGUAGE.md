@@ -106,7 +106,7 @@ Set `SIGNAL_LIGHT_ACTIVE_LOW=0` if your signal model is wired active-high.
 
 If the wrong light turns on, adjust `SIGNAL_LIGHT_*_PIN`. If lights are inverted, adjust `SIGNAL_LIGHT_ACTIVE_LOW`.
 
-The wrapper scripts use `python3` by default because Codex hooks should start quickly and avoid package-manager cache work. Set `SIGNAL_LIGHT_USE_UV=1` if you want the wrappers to run through `uv run`.
+The wrapper scripts avoid writing `__pycache__` files in the repository. By default they use `.venv/bin/python` when it exists, then fall back to `python3`. Set `SIGNAL_LIGHT_USE_UV=1` if you want the wrappers to run through `uv run`.
 
 ## Claude Code Hook Mapping
 

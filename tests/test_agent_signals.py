@@ -1,5 +1,7 @@
 import io
 
+import pytest
+
 from signal_light.agent_signals import SIGNALS
 from signal_light import cli
 from signal_light.codex_hook import CodexHookInput, choose_signal, session_key
@@ -327,3 +329,15 @@ def test_manual_off_clears_all_session_state(tmp_path, monkeypatch) -> None:
     assert cli.play_signal("off") == 0
     assert runtime.read_session_snapshot() == {"aggregate": "idle", "sessions": {}}
     assert applied == ["permission", "off"]
+
+
+def test_terminate_permission_error_raises_signal_light_error(monkeypatch) -> None:
+    def fake_kill(_pid: int, sig: int) -> None:
+        if sig == 0:
+            return
+        raise PermissionError("sandbox")
+
+    monkeypatch.setattr(runtime.os, "kill", fake_kill)
+
+    with pytest.raises(runtime.SignalLightError, match="Cannot stop existing signal worker"):
+        runtime._terminate(12345)

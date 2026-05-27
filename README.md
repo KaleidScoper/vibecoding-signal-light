@@ -163,7 +163,7 @@ Play real signals:
 ./scripts/signal-light play idle
 ```
 
-The wrapper scripts use `python3` by default so hooks can start quickly. If you want wrappers to run through `uv`, set:
+The wrapper scripts avoid writing `__pycache__` files in the repository. By default they use `.venv/bin/python` when it exists, then fall back to `python3`. If you want wrappers to run through `uv`, set:
 
 ```bash
 export SIGNAL_LIGHT_USE_UV=1

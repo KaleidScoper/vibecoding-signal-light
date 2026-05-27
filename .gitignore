@@ -6,6 +6,18 @@ build/
 dist/
 wheels/
 *.egg-info
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 
 # Virtual environments
 .venv
+venv/
+
+# Local machine files
+.DS_Store
+*.log
+.env
+.env.*

@@ -78,6 +78,59 @@ Default wiring is active-low:
 | 红灯 | `gp2` | 权限、阻塞或失败 |
 | 有效电平 | GPIO `LOW` | 灯亮 |
 
+### Wiring / 接线
+
+The reference build uses a common-anode, active-low LED-style wiring. Each light has its own current-limiting resistor unless your traffic light module already includes one.
+
+参考实物使用公共正极、低电平点亮的 LED 接法。每一路灯都应该串联独立限流电阻，除非你的交通灯模块已经内置电阻。
+
+```text
+MCP2221A 3.3V  ────────────────┬── Green LED anode / 绿灯正极
+                               ├── Yellow LED anode / 黄灯正极
+                               └── Red LED anode / 红灯正极
+
+Green LED cathode / 绿灯负极   ── 220Ω-1kΩ ── GP0
+Yellow LED cathode / 黄灯负极  ── 220Ω-1kΩ ── GP1
+Red LED cathode / 红灯负极     ── 220Ω-1kΩ ── GP2
+```
+
+```mermaid
+flowchart LR
+    V33["MCP2221A 3.3V"] --> COMMON["Common anode / 公共正极"]
+    COMMON --> GLED["Green LED / 绿灯"]
+    COMMON --> YLED["Yellow LED / 黄灯"]
+    COMMON --> RLED["Red LED / 红灯"]
+    GLED --> GR["220Ω-1kΩ"] --> GP0["GP0"]
+    YLED --> YR["220Ω-1kΩ"] --> GP1["GP1"]
+    RLED --> RR["220Ω-1kΩ"] --> GP2["GP2"]
+```
+
+In this mode, the MCP2221A GPIO pin sinks current:
+
+- GPIO `HIGH`: light off
+- GPIO `LOW`: light on
+
+这种模式下 MCP2221A GPIO 负责下拉电流：
+
+- GPIO `HIGH`：灯灭
+- GPIO `LOW`：灯亮
+
+If your signal model is common-cathode or active-high, wire each GPIO through a resistor to the LED anode, connect the cathodes to `GND`, and set:
+
+```bash
+export SIGNAL_LIGHT_ACTIVE_LOW=0
+```
+
+如果你的灯是公共负极或高电平点亮，则应让每个 GPIO 通过限流电阻接到对应 LED 正极，LED 负极接 `GND`，并设置：
+
+```bash
+export SIGNAL_LIGHT_ACTIVE_LOW=0
+```
+
+Important: MCP2221A GPIO pins are for small LED loads only. If your traffic light uses 5V/12V lamps, LED strips, relays, or anything above the GPIO current limit, use a transistor, MOSFET, relay module, or dedicated LED driver between the MCP2221A and the light.
+
+注意：MCP2221A GPIO 只适合直接驱动小电流 LED。若你的信号灯是 5V/12V 灯组、灯带、继电器，或电流超过 GPIO 能力，请在 MCP2221A 和灯之间增加三极管、MOSFET、继电器模块或专用 LED 驱动。
+
 You can override the wiring:
 
 ```bash

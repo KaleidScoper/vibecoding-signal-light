@@ -1,0 +1,19 @@
+[project]
+name = "signal-light"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "EasyMCP2221>=1.8.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+signal-light = "signal_light.cli:main"
+codex-signal-hook = "signal_light.codex_hook:main"
+claude-code-signal-hook = "signal_light.claude_code_hook:main"

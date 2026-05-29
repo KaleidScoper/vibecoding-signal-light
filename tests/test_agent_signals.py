@@ -811,7 +811,7 @@ def test_manual_off_clears_all_session_state(tmp_path, monkeypatch) -> None:
     assert applied == ["permission", "off"]
 
 
-def test_idle_signal_starts_sleep_worker(tmp_path, monkeypatch) -> None:
+def test_session_turn_end_does_not_directly_start_sleep_worker(tmp_path, monkeypatch) -> None:
     applied: list[str] = []
     sleep_started: list[bool] = []
     monkeypatch.setattr(runtime, "STATE_DIR", tmp_path)
@@ -888,10 +888,10 @@ def test_run_idle_sleep_worker_skips_if_no_longer_idle(tmp_path, monkeypatch) ->
     monkeypatch.setattr(runtime, "SLEEP_PID_FILE", tmp_path / "sleep-worker.json")
     monkeypatch.setattr(runtime, "IDLE_SLEEP_SECONDS", 0)
 
-    import time as time_mod
+    import time
     tmp_path.mkdir(parents=True, exist_ok=True)
     (tmp_path / "sessions.json").write_text(
-        json.dumps({"sessions": {"s1": {"signal": "working", "updated_at": time_mod.time()}}})
+        json.dumps({"sessions": {"s1": {"signal": "working", "updated_at": time.time()}}})
     )
     (tmp_path / "sleep-worker.json").write_text(
         json.dumps({"pid": os.getpid(), "signal": "idle_sleep"})
@@ -905,6 +905,18 @@ def test_run_idle_sleep_worker_skips_if_no_longer_idle(tmp_path, monkeypatch) ->
 
     assert result == 0
     assert played == []
+
+
+def test_new_signal_cancels_sleep_worker(monkeypatch) -> None:
+    sleep_stopped: list[bool] = []
+    monkeypatch.setattr(runtime, "stop_notice_worker", lambda: None)
+    monkeypatch.setattr(runtime, "stop_sleep_worker", lambda: sleep_stopped.append(True))
+    monkeypatch.setattr(runtime, "stop_worker", lambda: None)
+    monkeypatch.setattr(runtime, "start_worker", lambda name, speed=1.0: None)
+
+    runtime.apply_signal(SIGNALS["working"])
+
+    assert sleep_stopped == [True]
 
 
 def test_terminate_permission_error_raises_signal_light_error(monkeypatch) -> None:

@@ -158,8 +158,8 @@ def run_idle_sleep_worker() -> int:
             snapshot = _read_session_snapshot_unlocked()
             if snapshot["aggregate"] != "idle":
                 return 0
-        stop_worker()
-        _play_with_retries(SIGNALS["off"], speed=1.0)
+            stop_worker()
+            _play_with_retries(SIGNALS["off"], speed=1.0)
         return 0
     finally:
         _clear_worker_pid_file(SLEEP_PID_FILE, expected_pid=os.getpid())

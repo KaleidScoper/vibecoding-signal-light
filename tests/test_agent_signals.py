@@ -37,48 +37,44 @@ def test_idle_signal_leaves_green_on() -> None:
     assert light.states[-1] == (True, False, False)
 
 
-def test_working_signal_uses_soft_green_yellow_red_cycle() -> None:
+def test_working_signal_is_solid_yellow() -> None:
     light = RecordingLight()
 
-    SIGNALS["working"].play(light, speed=0.05, cycles=1)
+    SIGNALS["working"].play(light, speed=0.05)
 
-    assert SIGNALS["working"].repeat is True
-    assert len(light.brightness_states) == 27
-    assert all(green > 0 and yellow == 0 and red == 0 for green, yellow, red in light.brightness_states[:9])
-    assert all(green == 0 and yellow > 0 and red == 0 for green, yellow, red in light.brightness_states[9:18])
-    assert all(green == 0 and yellow == 0 and red > 0 for green, yellow, red in light.brightness_states[18:27])
-    assert light.brightness_states[0][0] < light.brightness_states[4][0]
-    assert light.brightness_states[4][0] > light.brightness_states[8][0]
+    assert SIGNALS["working"].repeat is False
+    assert SIGNALS["working"].leave_on == (False, True, False)
+    assert light.states[-1] == (False, True, False)
 
 
-def test_attention_signal_flashes_yellow() -> None:
+def test_attention_signal_is_solid_red() -> None:
     light = RecordingLight()
 
-    SIGNALS["attention"].play(light, speed=0.05, cycles=1)
+    SIGNALS["attention"].play(light, speed=0.05)
 
-    assert SIGNALS["attention"].repeat is True
-    assert light.states[:2] == [(False, True, False), (False, False, False)]
+    assert SIGNALS["attention"].repeat is False
+    assert SIGNALS["attention"].leave_on == (False, False, True)
+    assert light.states[-1] == (False, False, True)
 
 
-def test_thinking_signal_uses_work_cycle() -> None:
+def test_thinking_signal_is_solid_yellow() -> None:
     light = RecordingLight()
 
-    SIGNALS["thinking"].play(light, speed=0.05, cycles=1)
+    SIGNALS["thinking"].play(light, speed=0.05)
 
     assert SIGNALS["thinking"].frames == SIGNALS["working"].frames
-    assert len(light.brightness_states) == 27
-    assert light.brightness_states[0] == (0.10, 0.0, 0.0)
-    assert light.brightness_states[9] == (0.0, 0.10, 0.0)
-    assert light.brightness_states[18] == (0.0, 0.0, 0.10)
+    assert SIGNALS["thinking"].leave_on == (False, True, False)
+    assert light.states[-1] == (False, True, False)
 
 
-def test_permission_signal_flashes_yellow() -> None:
+def test_permission_signal_is_solid_red() -> None:
     light = RecordingLight()
 
-    SIGNALS["permission"].play(light, speed=0.05, cycles=1)
+    SIGNALS["permission"].play(light, speed=0.05)
 
-    assert SIGNALS["permission"].repeat is True
-    assert light.states[:2] == [(False, True, False), (False, False, False)]
+    assert SIGNALS["permission"].repeat is False
+    assert SIGNALS["permission"].leave_on == (False, False, True)
+    assert light.states[-1] == (False, False, True)
 
 
 def test_session_end_returns_to_idle_green() -> None:
@@ -89,14 +85,14 @@ def test_session_end_returns_to_idle_green() -> None:
     assert light.states[-1] == (True, False, False)
 
 
-def test_session_done_signal_briefly_flashes_green() -> None:
+def test_session_done_signal_briefly_shows_solid_green() -> None:
     light = RecordingLight()
 
-    SIGNALS["session_done"].play(light, speed=0.05, cycles=1)
+    SIGNALS["session_done"].play(light, speed=0.05)
 
     assert SIGNALS["session_done"].repeat is False
-    assert light.states[:2] == [(True, False, False), (False, False, False)]
-    assert light.states[-1] == (False, False, False)
+    assert SIGNALS["session_done"].leave_on == (True, False, False)
+    assert light.states == [(True, False, False), (True, False, False)]
 
 
 def test_codex_stop_maps_to_turn_end() -> None:
@@ -373,17 +369,6 @@ def test_apply_signal_stops_in_flight_session_end_notice(monkeypatch) -> None:
 
     assert calls == ["stop-notice", "stop-worker", "idle"]
 
-
-def test_apply_repeating_signal_stops_in_flight_session_end_notice(monkeypatch) -> None:
-    calls: list[str] = []
-    monkeypatch.setattr(runtime, "stop_notice_worker", lambda: calls.append("stop-notice"))
-    monkeypatch.setattr(runtime, "_worker_matches", lambda _signal_name: False)
-    monkeypatch.setattr(runtime, "stop_worker", lambda: calls.append("stop-worker"))
-    monkeypatch.setattr(runtime, "start_worker", lambda signal_name, speed=1.0: calls.append(f"start:{signal_name}"))
-
-    runtime.apply_signal(SIGNALS["permission"])
-
-    assert calls == ["stop-notice", "stop-worker", "start:permission"]
 
 
 def test_run_session_end_notice_worker_restores_latest_aggregate(monkeypatch) -> None:
